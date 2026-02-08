@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/authentication/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './modules/app.controller';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { AppController } from './modules/app.controller';
     TypeOrmModule.forRoot(typeormConfig()), 
     HealthModule, 
     UsersModule,
-    AuthModule
+    AuthModule,
+    ProductsModule
   ],
   controllers: [AppController],
   providers: [],

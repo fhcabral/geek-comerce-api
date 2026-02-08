@@ -4,7 +4,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import type { Response, Request } from 'express';
 import { responseJson } from 'src/common/default-response';
-import { ApiResponse } from 'src/common/interfaces/api-response';
+import { ApiResponse } from 'src/common/types/api-response';
 import { AuthResponseStatus } from './types';
 
 function getRefreshToken(req: Request, bodyToken?: string) {

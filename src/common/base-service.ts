@@ -1,14 +1,40 @@
 import { NotFoundException } from '@nestjs/common';
-import { DeepPartial, ObjectLiteral, Repository } from 'typeorm';
-import { CrudService } from './interfaces/crud-service.interface';
+import { DeepPartial, ObjectLiteral, Repository, FindManyOptions } from 'typeorm';
+import { CrudService } from './types/crud-service.interface';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginatedResponse } from './types/paginated-response';
 
 export abstract class BaseService<T extends ObjectLiteral, CreateDto, UpdateDto>
   implements CrudService<T, CreateDto, UpdateDto>
 {
   constructor(protected readonly repository: Repository<T>) {}
 
-  async findAll(query?: any): Promise<T[]> {
-    return this.repository.find(query);
+  async findAll(query?: PaginationQueryDto): Promise<T[] | PaginatedResponse<T>> {
+    if (!query) return this.repository.find();
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const options: FindManyOptions<T> = {
+      take: limit,
+      skip: (page - 1) * limit,
+    };
+
+    if (query.sort) {
+      options.order = { [query.sort]: (query.order ?? 'DESC') } as any;
+    }
+
+    const [data, total] = await this.repository.findAndCount(options);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string): Promise<T> {

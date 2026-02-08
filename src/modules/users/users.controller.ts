@@ -6,7 +6,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard';
 import { responseJson } from 'src/common/default-response';
-import { ApiResponse } from 'src/common/interfaces/api-response';
+import { ApiResponse } from 'src/common/types/api-response';
+import { PaginatedResponse } from 'src/common/types/paginated-response';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -14,7 +16,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async findAll(@Query() query: any): Promise<ApiResponse<UsersEntity[]>> {
+  async findAll(@Query() query: PaginationQueryDto): Promise<ApiResponse<UsersEntity[] | PaginatedResponse<UsersEntity>>> {
     const users = await this.usersService.findAll(query);
     return responseJson(users, 'Usuários listados com sucesso');
   }

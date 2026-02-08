@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/authentication/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AppController } from './modules/app.controller';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     UsersModule,
     AuthModule
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

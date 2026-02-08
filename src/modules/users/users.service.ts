@@ -36,4 +36,13 @@ export class UsersService extends BaseService<UsersEntity, CreateUserDto, Update
     this.repository.merge(entity, dto as DeepPartial<UsersEntity>);
     return this.repository.save(entity);
   }
+
+  async findByEmailWithPassword(email: string) {
+    return this.repository
+      .createQueryBuilder('u')
+      .addSelect('u.password')
+      .where('u.email = :email', { email })
+      .getOne();
+  }
+  
 }

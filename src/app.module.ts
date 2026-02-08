@@ -4,15 +4,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './modules/authentication/auth.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [ConfigModule.forRoot({
+  imports: [
+      ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(typeormConfig()), 
     HealthModule, 
-    UsersModule
+    UsersModule,
+    AuthModule
   ],
   controllers: [],
   providers: [],

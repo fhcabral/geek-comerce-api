@@ -6,7 +6,9 @@ import {
   DeleteDateColumn,
   PrimaryGeneratedColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
+import { ProductImageEntity } from './product-image.entity';
 
 @Entity({ name: 'products' })
 export class ProductEntity {
@@ -50,6 +52,10 @@ export class ProductEntity {
     default: true,
   })
   active: boolean;
+
+  @OneToMany
+  (() => ProductImageEntity, img => img.productId)
+  images: ProductImageEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

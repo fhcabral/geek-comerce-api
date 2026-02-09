@@ -17,8 +17,10 @@ import {
   
     @Column({ name: 'url', type: 'text' })
     url: string;
+
+    @Column({ name: 'path', type: 'text',nullable: true })
+    path: string;
   
-    // ordem da imagem (0 = principal)
     @Column({ name: 'position', type: 'int', default: 0 })
     position: number;
   

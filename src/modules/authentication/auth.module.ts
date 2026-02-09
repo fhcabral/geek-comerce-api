@@ -27,7 +27,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         return {
           secret,
           signOptions: {
-            expiresIn: '15m',
+            expiresIn: '60m',
           },
         };
       },

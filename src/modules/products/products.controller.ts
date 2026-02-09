@@ -25,6 +25,7 @@ import { responseJson } from 'src/common/default-response';
 import { ApiResponse } from 'src/common/types/api-response';
 import { PaginatedResponse } from 'src/common/types/paginated-response';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { ReorderImagesDto } from './dto/reorder-images.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('products')
@@ -94,12 +95,11 @@ export class ProductsController {
   @Put(':id/images/reorder')
   async reorderImages(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() body: { orderIds: string[] },
+    @Body() body: ReorderImagesDto,
   ): Promise<ApiResponse<ProductImageEntity[]>> {
     const images = await this.productsService.reorderImages(id, body.orderIds);
     return responseJson(images, 'Imagens reordenadas com sucesso');
   }
-
 
   @Delete(':id/images/:imageId')
   async removeImage(

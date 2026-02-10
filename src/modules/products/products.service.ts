@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
 
 import { ProductEntity } from './entities/products.entity';
@@ -9,6 +9,7 @@ import { UpdateProductDto } from './dto/update-products.dto';
 import { BaseService } from 'src/common/base-service';
 import { ProductImageEntity } from './entities/product-image.entity';
 import { GcsStorageService } from '../storage/gcs-storage.service';
+import { SaleItemEntity } from 'src/sales/entities/sale-item.entity';
 
 @Injectable()
 export class ProductsService extends BaseService<ProductEntity, CreateProductDto, UpdateProductDto> {
@@ -153,4 +154,71 @@ export class ProductsService extends BaseService<ProductEntity, CreateProductDto
 
     return image;
   }
+
+  async adjustStockOnSaleConfirmation(
+    items: SaleItemEntity[],
+    repository: Repository<ProductEntity>,
+  ): Promise<string[]> {
+    const warns: string[] = [];
+
+    const grouped = new Map<string, { qty: number; nameSnapshot: string; saleId: string }>();
+    for (const it of items) {
+      const curr = grouped.get(it.productId);
+      if (curr) curr.qty += it.quantity;
+      else grouped.set(it.productId, { qty: it.quantity, nameSnapshot: it.nameSnapshot, saleId: it.saleId });
+    }
+
+    await Promise.all(
+      Array.from(grouped.entries()).map(async ([productId, meta]) => {
+        const product = await repository.findOne({ where: { id: productId } });
+
+        if (!product) {
+          warns.push(`Product ${productId} - ${meta.nameSnapshot} not found for sale ${meta.saleId}`);
+          return;
+        }
+
+        if (product.stock === null || product.stock === undefined) return;
+
+        const res = await repository
+          .createQueryBuilder()
+          .update(ProductEntity)
+          .set({ stock: () => `"stock" - ${meta.qty}` })
+          .where('id = :id', { id: productId })
+          .andWhere('"stock" IS NOT NULL')
+          .andWhere('"stock" >= :qty', { qty: meta.qty })
+          .execute();
+
+        if (!res.affected) {
+          warns.push(
+            `Product ${productId} - ${product.name} insufficient stock. Available: ${product.stock}, required: ${meta.qty}`,
+          );
+        }
+      }),
+    );
+
+    return warns;
+  }
+
+  async adjustStockOnSaleCancel(
+    items: SaleItemEntity[],
+    repository: Repository<ProductEntity>,
+  ): Promise<void> {
+    const grouped = new Map<string, number>();
+    for (const it of items) {
+      grouped.set(it.productId, (grouped.get(it.productId) ?? 0) + it.quantity);
+    }
+
+    await Promise.all(
+      Array.from(grouped.entries()).map(async ([productId, qty]) => {
+        await repository
+          .createQueryBuilder()
+          .update(ProductEntity)
+          .set({ stock: () => `"stock" + ${qty}` })
+          .where('id = :id', { id: productId })
+          .andWhere('"stock" IS NOT NULL')
+          .execute();
+      }),
+    );
+  }
+
 }

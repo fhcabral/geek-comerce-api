@@ -8,6 +8,7 @@ import { AuthModule } from './modules/authentication/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './modules/app.controller';
 import { ProductsModule } from './modules/products/products.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { ProductsModule } from './modules/products/products.module';
     HealthModule, 
     UsersModule,
     AuthModule,
-    ProductsModule
+    ProductsModule,
+    SalesModule
   ],
   controllers: [AppController],
   providers: [],

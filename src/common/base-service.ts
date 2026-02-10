@@ -1,13 +1,13 @@
 import { NotFoundException } from '@nestjs/common';
-import { DeepPartial, ObjectLiteral, Repository, FindManyOptions } from 'typeorm';
+import { DeepPartial, ObjectLiteral, Repository, FindManyOptions, ILike } from 'typeorm';
 import { CrudService } from './types/crud-service.interface';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedResponse } from './types/paginated-response';
+import { isUUID } from 'class-validator';
 
 export abstract class BaseService<T extends ObjectLiteral, CreateDto, UpdateDto>
-  implements CrudService<T, CreateDto, UpdateDto>
-{
-  constructor(protected readonly repository: Repository<T>) {}
+  implements CrudService<T, CreateDto, UpdateDto> {
+  constructor(protected readonly repository: Repository<T>) { }
 
   async findAll(query?: PaginationQueryDto): Promise<T[] | PaginatedResponse<T>> {
     if (!query) return this.repository.find();
@@ -23,6 +23,20 @@ export abstract class BaseService<T extends ObjectLiteral, CreateDto, UpdateDto>
     if (query.sort) {
       options.order = { [query.sort]: (query.order ?? 'DESC') } as any;
     }
+
+    if (query.search) {
+      const string = String(query.search).trim();
+
+      const where: any[] = [];
+
+      where.push({ name: ILike(`%${string}%`) });
+      
+      if(isUUID(string)) {
+        where.push({ id: string });
+      }
+
+      options.where = where;
+  }
 
     const [data, total] = await this.repository.findAndCount(options);
 

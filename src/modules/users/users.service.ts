@@ -25,7 +25,6 @@ export class UsersService extends BaseService<UsersEntity, CreateUserDto, Update
     return this.repository.save(entity);
   }
 
-
   async update(id: string, dto: UpdateUserDto): Promise<UsersEntity> {
     const entity = await this.findOne(id);
 

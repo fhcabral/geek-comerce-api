@@ -26,6 +26,7 @@ import { ApiResponse } from 'src/common/types/api-response';
 import { PaginatedResponse } from 'src/common/types/paginated-response';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { ReorderImagesDto } from './dto/reorder-images.dto';
+import { OwnerOnly } from '../authentication/roles/owner-only.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('products')
@@ -45,12 +46,14 @@ export class ProductsController {
   }
 
   @Post()
+  @OwnerOnly()
   async create(@Body() dto: CreateProductDto): Promise<ApiResponse<ProductEntity>> {
     const user = await this.productsService.create(dto);
     return responseJson(user, 'Produto criado com sucesso');
   }
 
   @Put(':id')
+  @OwnerOnly()
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateProductDto,
@@ -60,6 +63,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @OwnerOnly()
   async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<ApiResponse<void>> {
     const user = await this.productsService.remove(id);
     return responseJson(user, 'Produto deletado com sucesso');
@@ -67,6 +71,7 @@ export class ProductsController {
 
   @Post(':id/images')
   @UseInterceptors(FileInterceptor('file'))
+  @OwnerOnly()
   async uploadImage(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -84,6 +89,7 @@ export class ProductsController {
   }
 
   @Patch(':id/images/:imageId/primary')
+  @OwnerOnly()
   async setPrimaryImage(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('imageId', new ParseUUIDPipe()) imageId: string,
@@ -93,6 +99,7 @@ export class ProductsController {
   }
 
   @Put(':id/images/reorder')
+  @OwnerOnly()
   async reorderImages(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: ReorderImagesDto,
@@ -102,6 +109,7 @@ export class ProductsController {
   }
 
   @Delete(':id/images/:imageId')
+  @OwnerOnly()
   async removeImage(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('imageId', new ParseUUIDPipe()) imageId: string,

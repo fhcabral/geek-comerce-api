@@ -9,6 +9,7 @@ import { responseJson } from 'src/common/default-response';
 import { ApiResponse } from 'src/common/types/api-response';
 import { PaginatedResponse } from 'src/common/types/paginated-response';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { OwnerOnly } from '../authentication/roles/owner-only.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -16,6 +17,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @OwnerOnly()
   async findAll(@Query() query: PaginationQueryDto): Promise<ApiResponse<UsersEntity[] | PaginatedResponse<UsersEntity>>> {
     const users = await this.usersService.findAll(query);
     return responseJson(users, 'Usuários listados com sucesso');
@@ -43,6 +45,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @OwnerOnly()
   async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<ApiResponse<void>> {
     const user = await this.usersService.remove(id);
     return responseJson(user, 'Usuário deletado com sucesso');

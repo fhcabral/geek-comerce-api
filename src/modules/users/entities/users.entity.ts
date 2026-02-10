@@ -20,6 +20,9 @@ export class UsersEntity {
   @Column({ name: 'password', length: 255, select: false })
   password: string;
 
+  @Column({ name: 'role', nullable: true, enum: ['OWNER', 'CUSTOMER'], default: 'CUSTOMER' })
+  role: 'OWNER' | 'CUSTOMER';
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

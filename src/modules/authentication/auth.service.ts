@@ -33,15 +33,16 @@ export class AuthService {
     const { password: _pw, ...safe } = user as any;
     return safe;
   }
-
-  async login(user: { id: string; email: string }) {
+  
+  async login(user: { id: string; email: string; role?: string }) {
+    console.log(user)
     const accessToken = await this.signAccessToken(user);
     const refreshToken = await this.issueRefreshToken(user.id);
     return { accessToken, refreshToken };
   }
 
-  private async signAccessToken(user: { id: string; email: string }) {
-    const payload: JwtPayload = { sub: user.id, email: user.email };
+  private async signAccessToken(user: { id: string; email: string; role?: string }) {
+    const payload: JwtPayload = { sub: user.id, email: user.email, role: user.role };
     return this.jwtService.signAsync(payload);
   }
 
@@ -76,7 +77,7 @@ export class AuthService {
     await this.refreshRepository.save(stored);
 
     const user = await this.usersService.findOne(stored.userId);
-    const accessToken = await this.signAccessToken({ id: user.id, email: user.email });
+    const accessToken = await this.signAccessToken({ id: user.id, email: user.email, role: user.role });
     const newRefreshToken = await this.issueRefreshToken(user.id);
 
     return { accessToken, refreshToken: newRefreshToken };

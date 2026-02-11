@@ -35,7 +35,6 @@ export class AuthService {
   }
   
   async login(user: { id: string; email: string; role?: string }) {
-    console.log(user)
     const accessToken = await this.signAccessToken(user);
     const refreshToken = await this.issueRefreshToken(user.id);
     return { accessToken, refreshToken };

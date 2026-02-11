@@ -13,6 +13,7 @@ import { SaleItemEntity } from './sale-item.entity';
 export enum SaleStatus {
   DRAFT = 'DRAFT',
   CONFIRMED = 'CONFIRMED',
+  PAID = 'PAID',
   CANCELED = 'CANCELED',
 }
 
@@ -33,6 +34,12 @@ export class SalesEntity {
 
   @OneToMany(() => SaleItemEntity, (item) => item.sale, { cascade: false })
   items!: SaleItemEntity[];
+
+  @Column({ type: 'text', nullable: true })
+  customerName?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  customerCpf?: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

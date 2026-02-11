@@ -13,13 +13,11 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    // Se não tem @Roles, não restringe (passa)
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const req = context.switchToHttp().getRequest();
     const user = req.user;
 
-    // JwtAuthGuard deveria garantir isso, mas vamos ser chatos mesmo assim
     if (!user?.role) throw new ForbiddenException('Perfil de acesso não encontrado.');
 
     const allowed = requiredRoles.includes(user.role);

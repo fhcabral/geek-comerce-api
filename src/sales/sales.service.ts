@@ -91,7 +91,6 @@ export class SalesService extends BaseService<SalesEntity, CreateSaleDto, Update
   }
 
   async removeItem(saleId: string, itemId: string, dto: UpdateSaleItemDto) {
-    console.log('Removing item:', { saleId, itemId, dto });
     const sale = await this.salesRepository.findOne({ where: { id: saleId } });
     if (!sale) throw new NotFoundException('Sale not found');
     this.assertDraft(sale);
@@ -169,8 +168,8 @@ export class SalesService extends BaseService<SalesEntity, CreateSaleDto, Update
 
     if (sale.status === SaleStatus.CANCELED) return sale;
 
-    if (sale.status !== SaleStatus.CONFIRMED) {
-      throw new BadRequestException('Only CONFIRMED sales can be canceled');
+    if (sale.status !== SaleStatus.CONFIRMED && sale.status !== SaleStatus.PAID) {
+      throw new BadRequestException('Only CONFIRMED or PAID sales can be canceled');
     }
 
     await this.productsService.adjustStockOnSaleCancel(sale.items, productsRepository);

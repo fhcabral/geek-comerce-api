@@ -9,7 +9,7 @@ import { UpdateProductDto } from './dto/update-products.dto';
 import { BaseService } from 'src/common/base-service';
 import { ProductImageEntity } from './entities/product-image.entity';
 import { GcsStorageService } from '../storage/gcs-storage.service';
-import { SaleItemEntity } from 'src/sales/entities/sale-item.entity';
+import { SaleItemEntity } from 'src/modules/sales/entities/sale-item.entity';
 
 @Injectable()
 export class ProductsService extends BaseService<ProductEntity, CreateProductDto, UpdateProductDto> {

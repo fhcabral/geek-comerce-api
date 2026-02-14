@@ -8,8 +8,8 @@ import { AuthModule } from './modules/authentication/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './modules/app.controller';
 import { ProductsModule } from './modules/products/products.module';
-import { SalesModule } from './sales/sales.module';
-import { PaymentsModule } from './payments/payments.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [

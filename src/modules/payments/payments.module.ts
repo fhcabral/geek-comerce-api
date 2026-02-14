@@ -3,7 +3,7 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { PaymentEntity } from './entities/payment.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SalesEntity } from 'src/sales/entities/sale.entity';
+import { SalesEntity } from 'src/modules/sales/entities/sale.entity';
 
 @Module({
   imports: [

@@ -10,6 +10,7 @@ import { AppController } from './modules/app.controller';
 import { ProductsModule } from './modules/products/products.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { ReportModule } from './modules/report/report.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
     AuthModule,
     ProductsModule,
     SalesModule,
-    PaymentsModule
+    PaymentsModule,
+    ReportModule
   ],
   controllers: [AppController],
   providers: [],

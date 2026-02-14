@@ -23,6 +23,12 @@ export class PaymentsService extends BaseService<PaymentEntity, CreatePaymentDto
     const sale = await this.salesRepository.findOne({ where: { id: saleId } });
     if (!sale) throw new NotFoundException('Sale not found');
 
+    const alreadyPaid = await this.paymentsRepository.findOne({ where: { saleId, status: PaymentStatus.PAID } });
+
+    if (alreadyPaid) {
+      throw new BadRequestException('This sale already has a paid payment');
+    }
+
     if (sale.status === SaleStatus.DRAFT) {
       throw new BadRequestException('Cannot pay a DRAFT sale');
     }

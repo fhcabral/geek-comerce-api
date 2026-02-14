@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDateString, IsIn, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class PaginationQueryDto {
   @Type(() => Number)
@@ -16,6 +16,14 @@ export class PaginationQueryDto {
   @IsString()
   @IsOptional()
   search?: string;
+
+  @IsDateString()
+  @IsOptional()
+  from?: Date;
+
+  @IsDateString()
+  @IsOptional()
+  to?: Date;
 
   @IsString()
   @IsOptional()

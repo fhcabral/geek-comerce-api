@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { DeepPartial, ObjectLiteral, Repository, FindManyOptions, ILike } from 'typeorm';
+import { DeepPartial, ObjectLiteral, Repository, FindManyOptions, ILike, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { CrudService } from './types/crud-service.interface';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedResponse } from './types/paginated-response';
@@ -30,53 +30,66 @@ export abstract class BaseService<T extends ObjectLiteral, CreateDto, UpdateDto>
       const where: any[] = [];
 
       where.push({ name: ILike(`%${string}%`) });
-      
-      if(isUUID(string)) {
+
+      if (isUUID(string)) {
         where.push({ id: string });
       }
 
       options.where = where;
-  }
-
-    const [data, total] = await this.repository.findAndCount(options);
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        pageCount: Math.ceil(total / limit),
-      },
-    };
-  }
-
-  async findOne(id: string): Promise<T> {
-    const entity = await this.repository.findOne({
-      where: { id } as any,
-    });
-
-    if (!entity) {
-      throw new NotFoundException(
-        `${this.constructor.name.replace('Service', '')} not found`,
-      );
     }
 
+    const where: any[] = [];
+
+    if (query.from && query.to) {
+      where.push({createdAt: Between(query.from, query.to)})
+      options.where = where
+    } else if (query.from) {
+      where.push({ createdAt: MoreThanOrEqual(query.from)});
+      options.where = where
+    } else if (query.to) {
+        where.push({ createdAt: LessThanOrEqual(query.to)});
+        options.where = where
+    }
+
+      const [data, total] = await this.repository.findAndCount(options);
+
+      return {
+        data,
+        meta: {
+          total,
+          page,
+          limit,
+          pageCount: Math.ceil(total / limit),
+        },
+      };
+    }
+
+  async findOne(id: string): Promise < T > {
+      const entity = await this.repository.findOne({
+        where: { id } as any,
+      });
+
+      if(!entity) {
+        throw new NotFoundException(
+          `${this.constructor.name.replace('Service', '')} not found`,
+        );
+      }
+
     return entity;
-  }
+    }
 
-  async create(dto: CreateDto): Promise<T> {
-    const entity = this.repository.create(dto as DeepPartial<T>);
-    return this.repository.save(entity);
-  }
+  async create(dto: CreateDto): Promise < T > {
+      const entity = this.repository.create(dto as DeepPartial<T>);
+      return this.repository.save(entity);
+    }
 
-  async update(id: string, dto: UpdateDto): Promise<T> {
-    const entity = await this.findOne(id);
-    this.repository.merge(entity, dto as DeepPartial<T>);
-    return this.repository.save(entity);
-  }
+  async update(id: string, dto: UpdateDto): Promise < T > {
+      const entity = await this.findOne(id);
+      this.repository.merge(entity, dto as DeepPartial<T>);
+      return this.repository.save(entity);
+    }
 
-  async remove(id: string): Promise<void> {
-    await this.repository.delete(id);
+  async remove(id: string): Promise < void> {
+      await this.repository.delete(id);
+    }
   }
-}

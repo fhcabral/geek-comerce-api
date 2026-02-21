@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { Between, EntityManager, FindManyOptions, ILike, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
 
 import { ProductEntity } from './entities/products.entity';
@@ -10,6 +10,9 @@ import { BaseService } from 'src/common/base-service';
 import { ProductImageEntity } from './entities/product-image.entity';
 import { GcsStorageService } from '../storage/gcs-storage.service';
 import { SaleItemEntity } from 'src/modules/sales/entities/sale-item.entity';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { PaginatedResponse } from 'src/common/types/paginated-response';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class ProductsService extends BaseService<ProductEntity, CreateProductDto, UpdateProductDto> {
@@ -24,6 +27,124 @@ export class ProductsService extends BaseService<ProductEntity, CreateProductDto
     private readonly dataSource: DataSource
   ) {
     super(productsRepository);
+  }
+
+  async findAll(
+    query?: PaginationQueryDto,
+  ): Promise<ProductEntity[] | PaginatedResponse<ProductEntity>> {
+    if (!query) {
+      return this.repository
+        .createQueryBuilder("p")
+        .leftJoinAndSelect("p.images", "img")
+        .orderBy("p.createdAt", "DESC")
+        .addOrderBy("img.position", "ASC")
+        .getMany();
+    }
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const sortMap: Record<string, string> = {
+      createdAt: "p.createdAt",
+      updatedAt: "p.updatedAt",
+      name: "p.name",
+      sku: "p.sku",
+      price: "p.price",
+      stock: "p.stock",
+    };
+
+    const sortKey = query.sort && sortMap[query.sort] ? query.sort : "createdAt";
+    const sortColumn = sortMap[sortKey];
+    const order = (query.order ?? "DESC").toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const baseQb = this.repository.createQueryBuilder("p");
+
+    if (query.search) {
+      const s = String(query.search).trim();
+      baseQb.andWhere(
+        `(p.name ILIKE :q${isUUID(s) ? " OR p.id = :id" : ""})`,
+        {
+          q: `%${s}%`,
+          ...(isUUID(s) ? { id: s } : {}),
+        },
+      );
+    }
+
+    if (query.from && query.to) {
+      baseQb.andWhere("p.createdAt BETWEEN :from AND :to", {
+        from: query.from,
+        to: query.to,
+      });
+    } else if (query.from) {
+      baseQb.andWhere("p.createdAt >= :from", { from: query.from });
+    } else if (query.to) {
+      baseQb.andWhere("p.createdAt <= :to", { to: query.to });
+    }
+
+    const total = await baseQb.getCount();
+
+    const idRows = await baseQb
+      .clone()
+      .select("p.id", "id")
+      .orderBy(sortColumn, order as "ASC" | "DESC")
+      .addOrderBy("p.id", "ASC")
+      .take(limit)
+      .skip((page - 1) * limit)
+      .getRawMany<{ id: string }>();
+
+    const ids = idRows.map((r) => r.id);
+
+    if (ids.length === 0) {
+      return {
+        data: [],
+        meta: {
+          total,
+          page,
+          limit,
+          pageCount: Math.ceil(total / limit),
+        },
+      };
+    }
+
+    const products = await this.repository
+      .createQueryBuilder("p")
+      .leftJoinAndSelect("p.images", "img")
+      .where("p.id IN (:...ids)", { ids })
+      .orderBy(sortColumn, order as "ASC" | "DESC")
+      .addOrderBy("p.id", "ASC")
+      .addOrderBy("img.position", "ASC")
+      .getMany();
+
+
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const data = ids.map((id) => byId.get(id)).filter(Boolean) as ProductEntity[];
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        pageCount: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findOne(id: string): Promise<ProductEntity> {
+    const entity = await this.repository
+      .createQueryBuilder("p")
+      .leftJoinAndSelect("p.images", "img")
+      .where("p.id = :id", { id })
+      .orderBy("img.position", "ASC")
+      .getOne();
+
+    if (!entity) {
+      throw new NotFoundException(
+        `${this.constructor.name.replace("Service", "")} not found`,
+      );
+    }
+
+    return entity;
   }
 
   async addImage(productId: string, file: Express.Multer.File): Promise<ProductImageEntity> {

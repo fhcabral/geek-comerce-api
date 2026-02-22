@@ -36,4 +36,9 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   active?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(1000)
+  description: string;
 }

@@ -6,8 +6,10 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { CreateProductDto } from './create-products.dto';
+import { PartialType } from '@nestjs/mapped-types';
 
-export class UpdateProductDto {
+export class UpdateProductDto extends PartialType(CreateProductDto) {
   @IsString()
   @IsOptional()
   @MaxLength(100)

@@ -1,5 +1,6 @@
 import { Entity, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, PrimaryGeneratedColumn, Index, OneToMany } from "typeorm";
 import { ProductImageEntity } from "./product-image.entity";
+import { IsOptional } from "class-validator";
 
 @Entity({ name: "products" })
 export class ProductEntity {
@@ -36,4 +37,8 @@ export class ProductEntity {
 
   @DeleteDateColumn({ name: "deleted_at" })
   deletedAt: Date | null;
+
+  @Column({ name: "description", length: 1000, nullable: true })
+  @IsOptional()
+  description: string;
 }
